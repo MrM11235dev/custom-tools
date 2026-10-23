@@ -1,0 +1,86 @@
+#!/bin/bash
+#
+# aes_crypt — AES-256-CBC encrypt and decrypt for files and strings, via openssl.
+#
+#   aes_crypt encrypt -t "secret text"
+#   aes_crypt decrypt -f notes.txt.enc
+#
+# Works two ways:
+#   - as a command, when this file is on your PATH
+#   - as a shell function, by sourcing this file from ~/.zshrc or ~/.bashrc
+#
+# Requires openssl, and bash 3.2 or newer (or zsh, when sourced).
+
+PROGRAM_NAME="aes_crypt"
+VERSION="1.0.0"
+
+aes_crypt() {
+    local action="$1"
+    shift 2>/dev/null || { echo "Usage: aes_crypt {encrypt|decrypt} [-f <file>] [-t <text>] [-p <password>]"; return 1; }
+    local input_file="" input_text="" password=""
+    local OPTIND=1
+    while getopts "f:t:p:" opt; do
+        case "$opt" in
+            f) input_file="$OPTARG" ;;
+            t) input_text="$OPTARG" ;;
+            p) password="$OPTARG" ;;
+            *) echo "Usage: aes_crypt {encrypt|decrypt} [-f <file>] [-t <text>] [-p <password>]"; return 1 ;;
+        esac
+    done
+    if [[ -z "$input_file" && -z "$input_text" ]]; then
+        echo "Error: provide input with -f <file> or -t <text>"; return 1
+    fi
+    local pass_args=()
+    [[ -n "$password" ]] && pass_args=(-pass "pass:$password")
+    case "$action" in
+        encrypt)
+            if [[ -n "$input_file" ]]; then
+                openssl enc -aes-256-cbc -salt -pbkdf2 -in "$input_file" -out "${input_file}.enc" ${pass_args[@]+"${pass_args[@]}"}
+                echo "Encrypted file written to: ${input_file}.enc"
+            else
+                echo -n "$input_text" | openssl enc -aes-256-cbc -salt -pbkdf2 -base64 ${pass_args[@]+"${pass_args[@]}"}
+            fi ;;
+        decrypt)
+            if [[ -n "$input_file" ]]; then
+                openssl enc -aes-256-cbc -d -pbkdf2 -in "$input_file" -out "${input_file%.enc}.dec" ${pass_args[@]+"${pass_args[@]}"}
+                echo "Decrypted file written to: ${input_file%.enc}.dec"
+            else
+                echo "$input_text" | openssl enc -aes-256-cbc -d -pbkdf2 -base64 ${pass_args[@]+"${pass_args[@]}"}
+                echo ""
+            fi ;;
+        *) echo "Error: first argument must be 'encrypt' or 'decrypt'"; return 1 ;;
+    esac
+}
+
+usage() {
+    cat <<EOF
+$PROGRAM_NAME $VERSION — AES-256-CBC encrypt/decrypt for files and strings
+
+Usage:
+  $PROGRAM_NAME {encrypt|decrypt} [-f <file>] [-t <text>] [-p <password>]
+
+Options:
+  -f FILE      Encrypt FILE to FILE.enc, or decrypt FILE to FILE.dec.
+  -t TEXT      Encrypt or decrypt TEXT, base64, printed to stdout.
+  -p PASSWORD  Password to use. Omit it and openssl prompts instead, which
+               keeps the password out of your shell history and out of \`ps\`.
+  -h, --help   Show this help.
+  -V, --version  Show the version.
+
+Examples:
+  $PROGRAM_NAME encrypt -t "secret text"
+  $PROGRAM_NAME decrypt -t "U2FsdGVkX1..." -p hunter2
+  $PROGRAM_NAME encrypt -f notes.txt
+  $PROGRAM_NAME decrypt -f notes.txt.enc
+EOF
+}
+
+# Sourcing this file only defines the function. Running it dispatches.
+if [ -n "${BASH_SOURCE+x}" ] && [ "${BASH_SOURCE[0]}" = "$0" ]; then
+    case "${1:-}" in
+        -h|--help) usage ;;
+        -V|--version) printf '%s %s\n' "$PROGRAM_NAME" "$VERSION" ;;
+        '') usage >&2; exit 1 ;;
+        *) aes_crypt "$@" ;;
+    esac
+fi

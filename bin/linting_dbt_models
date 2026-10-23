@@ -1,0 +1,50 @@
+#!/bin/bash
+#
+# linting_dbt_models — list the .sql files you have changed but not yet
+# committed, space separated and ready to hand to a linter.
+#
+#   linting_dbt_models
+#   sqlfluff lint $(linting_dbt_models)
+#
+# Works two ways:
+#   - as a command, when this file is on your PATH
+#   - as a shell function, by sourcing this file from ~/.zshrc or ~/.bashrc
+#
+# Requires git, and bash 3.2 or newer (or zsh, when sourced).
+
+PROGRAM_NAME="linting_dbt_models"
+VERSION="1.0.0"
+
+linting_dbt_models() {
+    git diff --name-only | grep '\.sql$' | sort | tr '\n' ' ' && echo
+}
+
+usage() {
+    cat <<EOF
+$PROGRAM_NAME $VERSION — uncommitted .sql files, ready for a linter
+
+Usage:
+  $PROGRAM_NAME
+
+Lists every .sql file reported by \`git diff --name-only\` as a repo-relative
+path, sorted, on one space-separated line.
+
+Options:
+  -h, --help     Show this help.
+  -V, --version  Show the version.
+
+Examples:
+  $PROGRAM_NAME
+  sqlfluff lint \$($PROGRAM_NAME)
+  sqlfluff fix \$($PROGRAM_NAME)
+EOF
+}
+
+# Sourcing this file only defines the function. Running it dispatches.
+if [ -n "${BASH_SOURCE+x}" ] && [ "${BASH_SOURCE[0]}" = "$0" ]; then
+    case "${1:-}" in
+        -h|--help) usage ;;
+        -V|--version) printf '%s %s\n' "$PROGRAM_NAME" "$VERSION" ;;
+        *) linting_dbt_models "$@" ;;
+    esac
+fi

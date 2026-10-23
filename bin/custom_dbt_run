@@ -1,0 +1,65 @@
+#!/bin/bash
+#
+# custom_dbt_run — turn dbt model paths into bare model names, space separated
+# and ready to paste into a dbt selector.
+#
+#   custom_dbt_run models/marts/orders.sql
+#   dbt run --select $(custom_dbt_run models/marts/orders.sql models/customers.sql)
+#
+# Works two ways:
+#   - as a command, when this file is on your PATH
+#   - as a shell function, by sourcing this file from ~/.zshrc or ~/.bashrc
+#
+# Requires bash 3.2 or newer (or zsh, when sourced).
+
+PROGRAM_NAME="custom_dbt_run"
+VERSION="1.1.0"
+
+custom_dbt_run() {
+    if [ "$#" -eq 0 ]; then
+        echo "Usage: custom_dbt_run <model_path> [model_path ...]" >&2
+        return 1
+    fi
+    local path name out=""
+    for path in "$@"; do
+        name="${path##*/}"   # drop the directory part
+        name="${name%.*}"    # drop the extension, whatever it is
+        [ -n "$name" ] && out="$out$name "
+    done
+    printf '%s\n' "${out% }"
+}
+
+usage() {
+    cat <<EOF
+$PROGRAM_NAME $VERSION — dbt model paths to model names
+
+Usage:
+  $PROGRAM_NAME MODEL_PATH [MODEL_PATH ...]
+
+Strips the directory and the extension from each path and prints the names on
+one space-separated line, in the order given.
+
+Options:
+  -h, --help     Show this help.
+  -V, --version  Show the version.
+
+Examples:
+  $PROGRAM_NAME models/marts/orders.sql
+    orders
+
+  $PROGRAM_NAME models/marts/orders.sql models/customers.sql
+    orders customers
+
+  dbt run --select \$($PROGRAM_NAME models/marts/*.sql)
+EOF
+}
+
+# Sourcing this file only defines the function. Running it dispatches.
+if [ -n "${BASH_SOURCE+x}" ] && [ "${BASH_SOURCE[0]}" = "$0" ]; then
+    case "${1:-}" in
+        -h|--help) usage ;;
+        -V|--version) printf '%s %s\n' "$PROGRAM_NAME" "$VERSION" ;;
+        '') usage >&2; exit 1 ;;
+        *) custom_dbt_run "$@" ;;
+    esac
+fi
