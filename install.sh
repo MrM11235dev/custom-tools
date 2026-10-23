@@ -6,7 +6,7 @@ REPO="${REPO:-MrM11235dev/custom-tools}"
 # -----------------------------------------------------------------------------
 BRANCH="${BRANCH:-main}"
 HOST="${HOST:-github}"
-BINS="${BINS:-custom-tools aes_crypt custom_dbt_run linting_dbt_models}"
+BINS="${BINS:-workspace-create aes_crypt custom_dbt_run linting_dbt_models}"
 
 if [ -z "${BASE_URL:-}" ]; then
 	case "$REPO" in
