@@ -2,17 +2,17 @@
 
 set -eu
 
-REPO="${REPO:-MrM11235dev/workspace-create}"
+REPO="${REPO:-MrM11235dev/custom-tools}"
 # -----------------------------------------------------------------------------
 BRANCH="${BRANCH:-main}"
 HOST="${HOST:-github}"
-BINS="${BINS:-workspace-create aes_crypt custom_dbt_run linting_dbt_models}"
+BINS="${BINS:-custom-tools aes_crypt custom_dbt_run linting_dbt_models}"
 
 if [ -z "${BASE_URL:-}" ]; then
 	case "$REPO" in
 		OWNER/*)
 			printf 'install: REPO is still set to the placeholder "%s".\n' "$REPO" >&2
-			printf '         Edit install.sh, or run: REPO=you/workspace-create sh install.sh\n' >&2
+			printf '         Edit install.sh, or run: REPO=you/custom-tools sh install.sh\n' >&2
 			exit 1
 			;;
 	esac

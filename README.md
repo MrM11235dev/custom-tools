@@ -2,10 +2,10 @@
 ## Install
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/MrM11235dev/workspace-create/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/MrM11235dev/custom-tools/main/install.sh | sh
 ```
 
-That installs commands that are available in bin— `workspace-create`, `aes_crypt`,
+That installs commands that are available in bin— `custom-tools`, `aes_crypt`,
 `custom_dbt_run` and `linting_dbt_models`. They all go to `~/.local/bin`, which is created
 if it does not exist. Nothing is written outside your home directory — no `sudo`, no
 system directories. If `~/.local/bin` is not on your `PATH`, the installer prints a
@@ -16,7 +16,7 @@ instead.
 ### Uninstall
 
 ```sh
-cd ~/.local/bin && rm -f workspace-create aes_crypt custom_dbt_run linting_dbt_models
+cd ~/.local/bin && rm -f custom-tools aes_crypt custom_dbt_run linting_dbt_models
 ```
 
 If you added any `source ~/.local/bin/<command>` lines to your `~/.zshrc`, remove those
@@ -25,7 +25,7 @@ too.
 ## Usage
 
 ```
-workspace-create [-f FILENAME] [options] DIR [DIR ...]
+custom-tools [-f FILENAME] [options] DIR [DIR ...]
 
   -f, --file FILENAME  Workspace file to write. The .code-workspace extension
                        is appended when missing, and FILENAME may include a
@@ -47,7 +47,7 @@ with a dash, prefix it with `./`. A bare `--` is not enough: it ends option pars
 the path is then handed to `cd`, which reads the leading dash as its own flags.
 
 ```sh
-workspace-create -f odd ./-weird-dir ./another
+custom-tools -f odd ./-weird-dir ./another
 ```
 
 The directory part of `-f` must already exist — it is not created for you.
@@ -56,22 +56,22 @@ The directory part of `-f` must already exist — it is not created for you.
 
 ```sh
 # Three projects, workspace file written to the current directory
-workspace-create -f backend ~/code/api ~/code/worker ~/code/shared
+custom-tools -f backend ~/code/api ~/code/worker ~/code/shared
 
 # Every project under ~/code, written to the Desktop with absolute paths
-workspace-create -f ~/Desktop/everything -a ~/code/*/
+custom-tools -f ~/Desktop/everything -a ~/code/*/
 
 # Create and open straight away
-workspace-create -f client --open ../web ../mobile
+custom-tools -f client --open ../web ../mobile
 
 # Filename defaults to the current directory's name
-cd ~/code && workspace-create api worker     # -> ~/code/code.code-workspace
+cd ~/code && custom-tools api worker     # -> ~/code/code.code-workspace
 
 # Regenerate an existing workspace after adding a project
-workspace-create -F -f backend ~/code/api ~/code/worker ~/code/billing
+custom-tools -F -f backend ~/code/api ~/code/worker ~/code/billing
 
 # Scripted use: say nothing unless something goes wrong
-workspace-create -q -f ci ~/code/api ~/code/worker
+custom-tools -q -f ci ~/code/api ~/code/worker
 ```
 
 The `~/code/*/` form is a shell glob, not a feature of the tool — the trailing slash makes
